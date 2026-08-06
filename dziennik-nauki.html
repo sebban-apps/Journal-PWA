@@ -1,0 +1,1050 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dziennik nauki</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="theme-color" content="#A87C3F">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Dziennik">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#EDE8D9; --paper-raised:#F5F1E6; --ink:#2B2620; --ink-soft:#6B6255;
+    --ink-faint:#9A9082; --brass:#A87C3F; --brass-dim:#C9AE85; --sage:#6B8068;
+    --rust:#A85D3F; --rule:#C9BFA8; --rule-soft:#DCD5C2; --blue-dust:#6E7A8C;
+  }
+  *{box-sizing:border-box}
+  @media (prefers-reduced-motion:reduce){*{animation-duration:.001ms!important;transition-duration:.001ms!important}}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:'Fraunces',Georgia,serif;min-height:100vh;display:flex;justify-content:center}
+  .page{width:100%;max-width:560px;padding:22px 16px 60px}
+  header.top{text-align:center;margin-bottom:16px}
+  .date-line{font-family:'JetBrains Mono',monospace;font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft)}
+  .title{font-size:21px;font-weight:500;margin-top:3px;font-variation-settings:'opsz' 40}
+
+  nav.tabs{display:flex;gap:2px;margin-bottom:16px;border-bottom:1px solid var(--rule);justify-content:center;flex-wrap:wrap}
+  nav.tabs button{font-family:'JetBrains Mono',monospace;font-size:11.5px;letter-spacing:.03em;background:none;border:none;padding:10px 11px;color:var(--ink-faint);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;text-transform:uppercase}
+  nav.tabs button.active{color:var(--ink);border-bottom-color:var(--brass)}
+
+  .view{display:none}
+  .view.active{display:block}
+  .card{background:var(--paper-raised);border:1px solid var(--rule);border-radius:4px;padding:22px 16px}
+
+  .dial-wrap{display:flex;justify-content:center;margin-bottom:16px}
+  .dial{position:relative;width:196px;height:196px}
+  .dial svg{width:100%;height:100%;transform:rotate(-90deg)}
+  .dial-track{fill:none;stroke:var(--rule);stroke-width:3}
+  .dial-tick{stroke:var(--brass-dim);stroke-width:2}
+  .dial-progress{fill:none;stroke:var(--brass);stroke-width:5;stroke-linecap:round;transition:stroke-dashoffset 1s linear}
+  .dial-needle{transform-origin:50% 50%;transition:transform 1s linear}
+  .dial-needle circle{fill:var(--brass)}
+  .dial-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .dial-time{font-family:'JetBrains Mono',monospace;font-size:30px;font-weight:500}
+  .dial-label{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--ink-soft);margin-top:4px;text-transform:uppercase;letter-spacing:.06em;min-height:14px}
+
+  .chips{display:flex;gap:7px;flex-wrap:wrap;justify-content:center;margin-bottom:12px}
+  .chips.left{justify-content:flex-start}
+  .chip{font-family:'JetBrains Mono',monospace;font-size:11.5px;padding:8px 12px;border-radius:999px;border:1px solid var(--rule);background:transparent;color:var(--ink);cursor:pointer;white-space:nowrap}
+  .chip.active{background:var(--brass);border-color:var(--brass);color:var(--paper-raised)}
+  .chip.add-new{border-style:dashed;color:var(--ink-soft)}
+  .chip:disabled{opacity:.4;cursor:default}
+
+  .custom-row{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:8px;font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--ink-soft);flex-wrap:wrap}
+  input[type=number]{width:56px;font-family:'JetBrains Mono',monospace;font-size:13px;padding:6px 8px;border:1px solid var(--rule);border-radius:4px;background:var(--paper);color:var(--ink);text-align:center}
+  .link-btn{background:none;border:none;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--blue-dust);text-decoration:underline;cursor:pointer;padding:4px}
+
+  .controls{display:flex;gap:9px;justify-content:center;flex-wrap:wrap}
+  button.primary,button.ghost{font-family:'Fraunces',Georgia,serif;font-size:14.5px;padding:11px 20px;border-radius:4px;cursor:pointer;border:1px solid transparent}
+  button.primary{background:var(--ink);color:var(--paper-raised)}
+  button.ghost{background:transparent;border-color:var(--rule);color:var(--ink)}
+  button:active{transform:scale(.98)}
+  button:disabled{opacity:.5;cursor:default}
+
+  .note-view{display:none}
+  .note-view.visible{display:block}
+  .timer-view.hidden{display:none}
+  .note-prompt{font-size:16.5px;text-align:center;margin-bottom:3px}
+  .note-sub{text-align:center;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-soft);margin-bottom:14px}
+
+  textarea,input[type=text],input[type=date],input[type=time]{width:100%;font-family:'Fraunces',Georgia,serif;font-size:14.5px;padding:10px;border:1px solid var(--rule);border-radius:4px;background:var(--paper);color:var(--ink);margin-bottom:10px}
+  input[type=date],input[type=time]{font-family:'JetBrains Mono',monospace;font-size:13px}
+  textarea{min-height:76px;resize:vertical}
+  textarea:focus,input:focus,.chip:focus,button:focus{outline:2px solid var(--blue-dust);outline-offset:2px}
+  .field-label{font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-soft);margin-bottom:5px;display:block}
+  .err{color:var(--rust);font-family:'JetBrains Mono',monospace;font-size:11px;margin:-6px 0 10px;min-height:14px}
+
+  .toolbar{display:flex;gap:7px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
+  .toolbar input[type=text]{flex:1;min-width:130px;margin-bottom:0;padding:9px 11px;font-size:13.5px}
+  .icon-btn{background:none;border:1px solid var(--rule);border-radius:4px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--ink-soft);flex-shrink:0;font-family:'JetBrains Mono',monospace;font-size:16px}
+  .icon-btn.active{border-color:var(--brass);color:var(--brass)}
+  .icon-btn svg{width:16px;height:16px}
+
+  .filter-row{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:14px}
+  .filter-row .chip{padding:6px 10px;font-size:10.5px}
+
+  .stats{display:flex;gap:14px;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-soft);margin:2px 0 16px;flex-wrap:wrap;text-align:center}
+  .stats b{color:var(--brass);font-weight:600}
+
+  .disclosure{margin-bottom:14px}
+  .panel{display:none;margin-top:10px;padding-top:12px;border-top:1px dashed var(--rule)}
+  .panel.visible{display:block}
+  .row-2{display:flex;gap:10px}
+  .row-2>div{flex:1}
+
+  .log-heading{font-size:13.5px;color:var(--ink-soft);margin:4px 0 6px;display:flex;align-items:center;gap:10px}
+  .log-heading::after{content:'';flex:1;height:1px;background:var(--rule)}
+
+  .entry{padding:12px 0;border-bottom:1px solid var(--rule-soft)}
+  .entry:last-child{border-bottom:none}
+  .entry-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+  .entry-meta{display:flex;align-items:baseline;gap:8px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-soft);margin-bottom:4px;flex-wrap:wrap}
+  .entry-tag{color:var(--brass);font-weight:600}
+  .entry-note{font-size:14px;line-height:1.5;white-space:pre-wrap}
+  .entry-actions{display:flex;gap:2px;flex-shrink:0}
+  .mini-btn{background:none;border:none;cursor:pointer;padding:4px;color:var(--ink-faint)}
+  .mini-btn svg{width:15px;height:15px;display:block}
+  .mini-btn.starred{color:var(--brass)}
+  .entry.editing .entry-static{display:none}
+  .empty-log{text-align:center;font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--ink-soft);padding:18px 0;line-height:1.6}
+
+  .cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+  .cal-nav .icon-btn{border:none}
+  .cal-month{font-size:16px;font-weight:500}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+  .cal-dow{font-family:'JetBrains Mono',monospace;font-size:9.5px;text-align:center;color:var(--ink-faint);padding-bottom:4px;text-transform:uppercase}
+  .cal-cell{min-height:56px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:6px;border-radius:4px;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:12px;border:1px solid transparent;color:var(--ink);background:transparent}
+  .cal-cell.empty{visibility:hidden;cursor:default}
+  .cal-cell.has-entries{background:var(--paper);border-color:var(--rule)}
+  .cal-cell.selected{border-color:var(--brass);background:var(--brass);color:var(--paper-raised)}
+  .cal-cell.today-cell{font-weight:700;text-decoration:underline}
+  .cal-min{font-size:9px;margin-top:3px;color:var(--brass)}
+  .cal-cell.selected .cal-min{color:var(--paper-raised)}
+  .cal-dots{display:flex;gap:2px;margin-top:3px}
+  .cal-dot{width:4px;height:4px;border-radius:50%;background:var(--brass)}
+  .cal-cell.selected .cal-dot{background:var(--paper-raised)}
+  .day-panel{margin-top:16px;padding-top:14px;border-top:1px solid var(--rule)}
+
+  .block-item{display:flex;align-items:center;gap:9px;padding:9px 0;border-bottom:1px solid var(--rule-soft)}
+  .block-item:last-child{border-bottom:none}
+  .block-check{width:20px;height:20px;border:1px solid var(--rule);border-radius:3px;background:var(--paper);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;padding:0}
+  .block-check.done{background:var(--sage);border-color:var(--sage)}
+  .block-check svg{width:12px;height:12px;color:var(--paper-raised)}
+  .block-time{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--brass);flex-shrink:0;min-width:44px}
+  .block-text{flex:1;font-size:14px}
+  .block-text.done{text-decoration:line-through;color:var(--ink-faint)}
+  .add-block-form{display:flex;gap:7px;margin-top:12px;align-items:flex-start}
+  .add-block-form .t{width:74px;margin-bottom:0}
+  .add-block-form .x{flex:1;margin-bottom:0}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="top">
+    <div class="date-line" id="todayLine">—</div>
+    <div class="title">Dziennik nauki</div>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab-btn active" data-view="timer" data-testid="tab-timer">Timer</button>
+    <button class="tab-btn" data-view="log" data-testid="tab-log">Dziennik</button>
+    <button class="tab-btn" data-view="calendar" data-testid="tab-calendar">Kalendarz</button>
+    <button class="tab-btn" data-view="schedule" data-testid="tab-schedule">Plan dnia</button>
+  </nav>
+
+  <!-- ===== TIMER ===== -->
+  <div class="view active" id="view-timer">
+    <div class="card">
+      <div class="timer-view" id="timerView">
+        <div class="dial-wrap"><div class="dial">
+          <svg viewBox="0 0 220 220">
+            <circle class="dial-track" cx="110" cy="110" r="94"></circle>
+            <g id="ticks"></g>
+            <circle class="dial-progress" id="progressRing" cx="110" cy="110" r="94" stroke-dasharray="590.6" stroke-dashoffset="0"></circle>
+            <g class="dial-needle" id="needle">
+              <line x1="110" y1="110" x2="110" y2="30" stroke="var(--brass)" stroke-width="2" opacity=".55"></line>
+              <circle cx="110" cy="30" r="4"></circle>
+            </g>
+          </svg>
+          <div class="dial-center">
+            <div class="dial-time" id="timeDisplay" data-testid="time-display">45:00</div>
+            <div class="dial-label" id="stateLabel" data-testid="state-label">gotowe</div>
+          </div>
+        </div></div>
+
+        <div class="chips" id="presets" data-testid="presets"></div>
+
+        <div class="custom-row">
+          własny czas:
+          <input type="number" id="customMin" data-testid="custom-min" min="1" max="180" value="45"> min
+          <button class="link-btn" id="savePresetBtn" data-testid="save-preset">zapisz jako skrót</button>
+        </div>
+        <div class="err" id="timerErr" data-testid="timer-err"></div>
+
+        <div class="controls" id="controlsIdle">
+          <button class="primary" id="startBtn" data-testid="start">Zacznij</button>
+        </div>
+        <div class="controls" id="controlsRunning" style="display:none">
+          <button class="ghost" id="pauseBtn" data-testid="pause">Pauza</button>
+          <button class="ghost" id="stopBtn" data-testid="stop">Zakończ i zapisz</button>
+        </div>
+
+        <div style="text-align:center;margin-top:14px">
+          <button class="link-btn" id="jumpPastBtn" data-testid="jump-past">zapisz sesję, która już się odbyła</button>
+        </div>
+      </div>
+
+      <div class="note-view" id="noteView">
+        <div class="note-prompt">Co udało się zrobić?</div>
+        <div class="note-sub" id="noteSub" data-testid="note-sub">45 min</div>
+        <span class="field-label">Kategoria</span>
+        <div class="chips" id="tagRow" data-testid="tag-row"></div>
+        <textarea id="noteText" data-testid="note-text" placeholder="Kilka słów wystarczy, to nie ma być raport."></textarea>
+        <div class="controls">
+          <button class="primary" id="saveBtn" data-testid="save-session">Zapisz</button>
+          <button class="ghost" id="skipBtn" data-testid="skip-session">Pomiń</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== DZIENNIK ===== -->
+  <div class="view" id="view-log">
+    <div class="card">
+      <div class="toolbar">
+        <input type="text" id="searchInput" data-testid="search" placeholder="szukaj w notatkach…">
+        <button class="icon-btn" id="favFilterBtn" data-testid="fav-filter" title="tylko ulubione">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15 9 22 9.5 17 14.5 18.5 22 12 18 5.5 22 7 14.5 2 9.5 9 9"/></svg>
+        </button>
+      </div>
+
+      <div class="filter-row" id="categoryFilterRow" data-testid="cat-filter"></div>
+      <div class="stats" id="stats" data-testid="stats"></div>
+
+      <div class="disclosure">
+        <button class="link-btn" id="toggleManualBtn" data-testid="toggle-manual">+ zapisz minioną sesję</button>
+        <div class="panel" id="manualPanel">
+          <div class="row-2">
+            <div><span class="field-label">Data</span><input type="date" id="manualDate" data-testid="manual-date"></div>
+            <div><span class="field-label">Godzina</span><input type="time" id="manualTime" data-testid="manual-time" value="09:00"></div>
+          </div>
+          <span class="field-label">Ile trwała (min)</span>
+          <input type="text" id="manualMinutes" data-testid="manual-minutes" value="45">
+          <span class="field-label">Kategoria</span>
+          <div class="chips left" id="manualTagRow" data-testid="manual-tag-row"></div>
+          <span class="field-label">Notatka</span>
+          <textarea id="manualNote" data-testid="manual-note" placeholder="Co zrobiłeś?"></textarea>
+          <div class="err" id="manualErr" data-testid="manual-err"></div>
+          <div class="controls">
+            <button class="primary" id="manualSaveBtn" data-testid="manual-save">Dodaj wpis</button>
+            <button class="ghost" id="manualCancelBtn" data-testid="manual-cancel">Anuluj</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="disclosure" style="margin-top:6px">
+        <button class="link-btn" id="exportBtn" data-testid="export-btn">eksportuj kopię zapasową</button>
+        <span style="color:var(--rule)"> · </span>
+        <button class="link-btn" id="importBtn" data-testid="import-btn">przywróć z kopii</button>
+        <input type="file" id="importFile" data-testid="import-file" accept="application/json,.json" style="display:none">
+        <div class="err" id="backupMsg" data-testid="backup-msg"></div>
+      </div>
+
+      <div class="log-heading">zapiski</div>
+      <div id="logList" data-testid="log-list"></div>
+    </div>
+  </div>
+
+  <!-- ===== KALENDARZ ===== -->
+  <div class="view" id="view-calendar">
+    <div class="card">
+      <div class="cal-nav">
+        <button class="icon-btn" id="calPrev" data-testid="cal-prev">‹</button>
+        <div class="cal-month" id="calMonthLabel" data-testid="cal-month">—</div>
+        <button class="icon-btn" id="calNext" data-testid="cal-next">›</button>
+      </div>
+      <div class="cal-grid" id="calGrid" data-testid="cal-grid"></div>
+      <div class="day-panel" id="dayPanel" data-testid="day-panel"></div>
+    </div>
+  </div>
+
+  <!-- ===== PLAN DNIA ===== -->
+  <div class="view" id="view-schedule">
+    <div class="card">
+      <div class="cal-nav">
+        <button class="icon-btn" id="dayPrev" data-testid="day-prev">‹</button>
+        <div class="cal-month" id="dayLabel" data-testid="day-label">—</div>
+        <button class="icon-btn" id="dayNext" data-testid="day-next">›</button>
+      </div>
+      <div id="blockList" data-testid="block-list"></div>
+      <div class="add-block-form">
+        <input type="text" class="t" id="blockTime" data-testid="block-time" placeholder="9:00">
+        <input type="text" class="x" id="blockText" data-testid="block-text" placeholder="co jest w planie">
+        <button class="icon-btn" id="blockAddBtn" data-testid="block-add">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+      </div>
+      <div class="err" id="blockErr" data-testid="block-err"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+(function () {
+'use strict';
+
+/* ---------------- storage (Claude gdy dostępne, w przeciwnym razie localStorage telefonu) ---------------- */
+const Store = (function () {
+  const real = (typeof window !== 'undefined' && window.storage && typeof window.storage.get === 'function') ? window.storage : null;
+  const LS_PREFIX = 'dziennik-nauki:';
+  let lsWorks = false;
+  try {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem(LS_PREFIX + '__test', '1');
+      localStorage.removeItem(LS_PREFIX + '__test');
+      lsWorks = true;
+    }
+  } catch (e) { lsWorks = false; }
+  const mem = new Map();
+
+  return {
+    mode: real ? 'claude' : (lsWorks ? 'local' : 'memory'),
+    async get(key) {
+      if (real) { try { const r = await real.get(key, false); return (r && r.value) ? r.value : null; } catch (e) { return null; } }
+      if (lsWorks) { try { return localStorage.getItem(LS_PREFIX + key); } catch (e) { return mem.has(key) ? mem.get(key) : null; } }
+      return mem.has(key) ? mem.get(key) : null;
+    },
+    async set(key, val) {
+      if (real) { try { await real.set(key, val, false); return true; } catch (e) { return false; } }
+      if (lsWorks) { try { localStorage.setItem(LS_PREFIX + key, val); return true; } catch (e) { mem.set(key, val); return false; } }
+      mem.set(key, val); return true;
+    }
+  };
+})();
+async function loadJSON(key, fb) {
+  const raw = await Store.get(key);
+  if (raw === null || raw === undefined) return fb;
+  try { const v = JSON.parse(raw); return (v === null || v === undefined) ? fb : v; } catch (e) { return fb; }
+}
+const saveJSON = (key, val) => Store.set(key, JSON.stringify(val));
+
+const DEFAULT_CATEGORIES = ['SQL', 'Python', 'Angielski', 'Inne'];
+const DEFAULT_PRESETS = [45, 20, 30];
+
+/* strażnicy typów: chronią przed uszkodzonymi danymi w magazynie */
+const asArray = v => Array.isArray(v) ? v : [];
+const asPlainObject = v => (v && typeof v === 'object' && !Array.isArray(v)) ? v : {};
+
+const loadSessions = async () => asArray(await loadJSON('sessions', []))
+  .filter(s => s && typeof s === 'object' && s.id !== undefined);
+const saveSessions = s => saveJSON('sessions', asArray(s));
+
+const loadCategories = async () => {
+  const raw = asArray(await loadJSON('categories', DEFAULT_CATEGORIES))
+    .filter(c => typeof c === 'string' && c.trim() !== '');
+  return raw.length ? raw : DEFAULT_CATEGORIES.slice();
+};
+const saveCategories = c => saveJSON('categories', asArray(c));
+
+const loadPresets = async () => {
+  const raw = asArray(await loadJSON('presets', DEFAULT_PRESETS))
+    .map(Number).filter(n => Number.isFinite(n) && n >= 1 && n <= 180);
+  return raw.length ? raw : DEFAULT_PRESETS.slice();
+};
+const savePresets = p => saveJSON('presets', asArray(p));
+
+const loadDayplans = async () => {
+  const obj = asPlainObject(await loadJSON('dayplans', {}));
+  const clean = {};
+  Object.keys(obj).forEach(k => { if (Array.isArray(obj[k])) clean[k] = obj[k].filter(b => b && typeof b === 'object' && b.id !== undefined); });
+  return clean;
+};
+const saveDayplans = d => saveJSON('dayplans', asPlainObject(d));
+
+/* ---------------- narzędzia ---------------- */
+const MONTHS_GEN = ['stycznia','lutego','marca','kwietnia','maja','czerwca','lipca','sierpnia','września','października','listopada','grudnia'];
+const MONTHS_NOM = ['Styczeń','Luty','Marzec','Kwiecień','Maj','Czerwiec','Lipiec','Sierpień','Wrzesień','Październik','Listopad','Grudzień'];
+const MONTHS_ABBR = ['sty','lut','mar','kwi','maj','cze','lip','sie','wrz','paź','lis','gru'];
+const DOW = ['Pn','Wt','Śr','Cz','Pt','So','Nd'];
+const DAYS_FULL = ['niedziela','poniedziałek','wtorek','środa','czwartek','piątek','sobota'];
+
+const pad = n => String(n).padStart(2, '0');
+const ymd = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const esc = s => { const d = document.createElement('div'); d.textContent = (s === null || s === undefined) ? '' : String(s); return d.innerHTML; };
+const $ = id => document.getElementById(id);
+
+/* walidacje */
+function parseMinutes(raw, max) {
+  const s = String(raw === null || raw === undefined ? '' : raw).trim();
+  if (s === '') return { ok: false, msg: 'Podaj liczbę minut.' };
+  if (!/^\d+$/.test(s)) return { ok: false, msg: 'Minuty to liczba całkowita.' };
+  const n = parseInt(s, 10);
+  if (n < 1) return { ok: false, msg: 'Minimum to 1 minuta.' };
+  if (n > max) return { ok: false, msg: `Maksimum to ${max} minut.` };
+  return { ok: true, value: n };
+}
+function parseClock(raw) {
+  const s = String(raw === null || raw === undefined ? '' : raw).trim();
+  if (s === '') return { ok: true, value: '' };
+  const m = s.match(/^(\d{1,2})[:.](\d{2})$/);
+  if (!m) return { ok: false, msg: 'Zły format godziny, wpisz np. 9:00.' };
+  const h = parseInt(m[1], 10), mi = parseInt(m[2], 10);
+  if (h > 23) return { ok: false, msg: 'Godzina od 0 do 23.' };
+  if (mi > 59) return { ok: false, msg: 'Minuty od 0 do 59.' };
+  return { ok: true, value: `${h}:${pad(mi)}` };
+}
+function parseDateStr(raw) {
+  const s = String(raw || '').trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) return { ok: false, msg: 'Wybierz datę.' };
+  const [y, mo, d] = s.split('-').map(Number);
+  const dt = new Date(y, mo - 1, d, 12, 0, 0);
+  if (dt.getFullYear() !== y || dt.getMonth() !== mo - 1 || dt.getDate() !== d) return { ok: false, msg: 'Nieprawidłowa data.' };
+  return { ok: true, value: dt };
+}
+function showErr(el, msg) { if (el) el.textContent = msg || ''; }
+
+/* ---------------- zakładki ---------------- */
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    btn.classList.add('active');
+    $('view-' + btn.dataset.view).classList.add('active');
+    if (btn.dataset.view === 'log') renderLog();
+    if (btn.dataset.view === 'calendar') renderCalendar();
+    if (btn.dataset.view === 'schedule') renderSchedule();
+  });
+});
+function goToTab(name) {
+  const btn = document.querySelector(`.tab-btn[data-view="${name}"]`);
+  if (btn) btn.click();
+}
+(function () {
+  const d = new Date();
+  $('todayLine').textContent = `${DAYS_FULL[d.getDay()]}, ${d.getDate()} ${MONTHS_GEN[d.getMonth()]} ${d.getFullYear()}`;
+})();
+
+/* ---------------- wspólny renderer kategorii ---------------- */
+async function renderCatChips(container, selectedRef, allowAdd) {
+  const cats = await loadCategories();
+  if (!cats.includes(selectedRef.value)) selectedRef.value = cats[0] || 'Inne';
+  container.innerHTML =
+    cats.map(c => `<button type="button" class="chip${c === selectedRef.value ? ' active' : ''}" data-cat="${esc(c)}">${esc(c)}</button>`).join('') +
+    (allowAdd ? `<button type="button" class="chip add-new" data-addcat="1">+ nowa</button>` : '');
+}
+function wireCatChips(container, selectedRef, allowAdd) {
+  container.addEventListener('click', async e => {
+    const add = e.target.closest('[data-addcat]');
+    if (add) {
+      const name = (prompt('Nazwa nowej kategorii:') || '').trim();
+      if (!name) return;
+      const cats = await loadCategories();
+      if (!cats.includes(name)) { cats.push(name); await saveCategories(cats); }
+      selectedRef.value = name;
+      await renderCatChips(container, selectedRef, allowAdd);
+      return;
+    }
+    const chip = e.target.closest('[data-cat]');
+    if (!chip) return;
+    selectedRef.value = chip.dataset.cat;
+    container.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+  });
+}
+
+/* ================= TIMER ================= */
+const CIRC = 2 * Math.PI * 94;
+const T = { total: 45 * 60, left: 45 * 60, running: false, iv: null, lastMinutes: 45 };
+const tagRef = { value: 'SQL' };
+
+const timeDisplay = $('timeDisplay'), stateLabel = $('stateLabel'), ring = $('progressRing'), needle = $('needle');
+const presetsEl = $('presets'), customMin = $('customMin'), timerErr = $('timerErr');
+const controlsIdle = $('controlsIdle'), controlsRunning = $('controlsRunning');
+const timerView = $('timerView'), noteView = $('noteView'), noteSub = $('noteSub'), noteText = $('noteText');
+
+(function ticks() {
+  const g = $('ticks');
+  for (let i = 0; i < 12; i++) {
+    const a = (i / 12) * 2 * Math.PI, r1 = 82, r2 = 90;
+    const l = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    l.setAttribute('x1', 110 + r1 * Math.cos(a)); l.setAttribute('y1', 110 + r1 * Math.sin(a));
+    l.setAttribute('x2', 110 + r2 * Math.cos(a)); l.setAttribute('y2', 110 + r2 * Math.sin(a));
+    l.setAttribute('class', 'dial-tick'); g.appendChild(l);
+  }
+  ring.setAttribute('stroke-dasharray', CIRC.toFixed(1));
+})();
+
+const fmt = s => `${pad(Math.floor(s / 60))}:${pad(Math.floor(s % 60))}`;
+function renderTimer() {
+  timeDisplay.textContent = fmt(T.left);
+  const frac = T.total > 0 ? T.left / T.total : 0;
+  ring.setAttribute('stroke-dashoffset', (CIRC * (1 - frac)).toFixed(1));
+  needle.style.transform = `rotate(${90 + (1 - frac) * 360}deg)`;
+  stateLabel.textContent = T.running ? 'w toku' : (T.left === T.total ? 'gotowe' : 'pauza');
+}
+function setDuration(min) { T.total = min * 60; T.left = min * 60; renderTimer(); }
+
+async function renderPresets() {
+  const list = await loadPresets();
+  presetsEl.innerHTML = list.map(m => {
+    const label = m === 45 ? 'Techniczna · 45' : (m === 20 ? 'Angielski · 20' : String(m));
+    return `<button type="button" class="chip${m * 60 === T.total ? ' active' : ''}" data-min="${m}">${label}</button>`;
+  }).join('');
+}
+presetsEl.addEventListener('click', e => {
+  const chip = e.target.closest('[data-min]');
+  if (!chip || chip.disabled) return;
+  presetsEl.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  chip.classList.add('active');
+  const m = parseInt(chip.dataset.min, 10);
+  customMin.value = m; showErr(timerErr, ''); setDuration(m);
+});
+customMin.addEventListener('change', () => {
+  const r = parseMinutes(customMin.value, 180);
+  if (!r.ok) { showErr(timerErr, r.msg); return; }
+  showErr(timerErr, '');
+  presetsEl.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  setDuration(r.value);
+});
+$('savePresetBtn').addEventListener('click', async () => {
+  const r = parseMinutes(customMin.value, 180);
+  if (!r.ok) { showErr(timerErr, r.msg); return; }
+  showErr(timerErr, '');
+  const list = await loadPresets();
+  if (!list.includes(r.value)) { list.push(r.value); list.sort((a, b) => a - b); await savePresets(list); }
+  setDuration(r.value);
+  await renderPresets();
+});
+
+function tick() { T.left -= 1; if (T.left <= 0) { T.left = 0; finishSession(); return; } renderTimer(); }
+$('startBtn').addEventListener('click', () => {
+  const r = parseMinutes(customMin.value, 180);
+  if (!r.ok) { showErr(timerErr, r.msg); return; }
+  if (T.left === T.total) setDuration(r.value);
+  T.running = true;
+  controlsIdle.style.display = 'none'; controlsRunning.style.display = 'flex';
+  presetsEl.querySelectorAll('.chip').forEach(c => c.disabled = true);
+  customMin.disabled = true;
+  T.iv = setInterval(tick, 1000); renderTimer();
+});
+$('pauseBtn').addEventListener('click', () => {
+  if (T.running) { T.running = false; clearInterval(T.iv); $('pauseBtn').textContent = 'Wznów'; }
+  else { T.running = true; $('pauseBtn').textContent = 'Pauza'; T.iv = setInterval(tick, 1000); }
+  renderTimer();
+});
+$('stopBtn').addEventListener('click', () => { clearInterval(T.iv); finishSession(); });
+
+async function finishSession() {
+  clearInterval(T.iv); T.running = false;
+  T.lastMinutes = Math.max(1, Math.round((T.total - T.left) / 60));
+  noteSub.textContent = `${T.lastMinutes} min`;
+  timerView.classList.add('hidden'); noteView.classList.add('visible');
+  noteText.value = '';
+  await renderCatChips($('tagRow'), tagRef, true);
+}
+function resetToIdle() {
+  T.running = false; T.left = T.total;
+  controlsIdle.style.display = 'flex'; controlsRunning.style.display = 'none';
+  $('pauseBtn').textContent = 'Pauza';
+  presetsEl.querySelectorAll('.chip').forEach(c => c.disabled = false);
+  customMin.disabled = false;
+  timerView.classList.remove('hidden'); noteView.classList.remove('visible');
+  renderTimer();
+}
+wireCatChips($('tagRow'), tagRef, true);
+$('saveBtn').addEventListener('click', async () => {
+  const btn = $('saveBtn'); btn.disabled = true;
+  const list = await loadSessions();
+  list.push({ id: Date.now() + Math.floor(Math.random() * 1000), date: new Date().toISOString(), subject: tagRef.value, minutes: T.lastMinutes, note: noteText.value.trim(), favorite: false });
+  await saveSessions(list);
+  btn.disabled = false; resetToIdle();
+});
+$('skipBtn').addEventListener('click', resetToIdle);
+$('jumpPastBtn').addEventListener('click', async () => {
+  goToTab('log');
+  if (!$('manualPanel').classList.contains('visible')) await openManual();
+});
+
+/* ================= DZIENNIK ================= */
+const F = { search: '', favOnly: false, category: null, dateFilter: null };
+let editingId = null;
+const manualRef = { value: 'SQL' };
+const logList = $('logList'), statsEl = $('stats'), catFilterRow = $('categoryFilterRow');
+
+$('favFilterBtn').addEventListener('click', () => {
+  F.favOnly = !F.favOnly;
+  $('favFilterBtn').classList.toggle('active', F.favOnly);
+  renderLog();
+});
+$('searchInput').addEventListener('input', () => { F.search = $('searchInput').value.trim().toLowerCase(); renderLog(); });
+catFilterRow.addEventListener('click', e => {
+  const chip = e.target.closest('[data-fcat]');
+  if (!chip) return;
+  F.category = chip.dataset.fcat === '*' ? null : chip.dataset.fcat;
+  renderLog();
+});
+
+async function openManual() {
+  $('manualPanel').classList.add('visible');
+  $('manualDate').value = ymd(new Date());
+  $('manualTime').value = '09:00';
+  $('manualMinutes').value = '45';
+  $('manualNote').value = '';
+  showErr($('manualErr'), '');
+  await renderCatChips($('manualTagRow'), manualRef, true);
+}
+wireCatChips($('manualTagRow'), manualRef, true);
+$('toggleManualBtn').addEventListener('click', async () => {
+  if ($('manualPanel').classList.contains('visible')) $('manualPanel').classList.remove('visible');
+  else await openManual();
+});
+$('manualCancelBtn').addEventListener('click', () => $('manualPanel').classList.remove('visible'));
+$('manualSaveBtn').addEventListener('click', async () => {
+  const dr = parseDateStr($('manualDate').value);
+  if (!dr.ok) { showErr($('manualErr'), dr.msg); return; }
+  const mr = parseMinutes($('manualMinutes').value, 1440);
+  if (!mr.ok) { showErr($('manualErr'), mr.msg); return; }
+  const tRaw = ($('manualTime').value || '').trim();
+  const tr = parseClock(tRaw);
+  if (!tr.ok) { showErr($('manualErr'), tr.msg); return; }
+  const dt = dr.value;
+  if (tr.value) { const [h, mi] = tr.value.split(':').map(Number); dt.setHours(h, mi, 0, 0); }
+  showErr($('manualErr'), '');
+  const list = await loadSessions();
+  list.push({ id: Date.now() + Math.floor(Math.random() * 1000), date: dt.toISOString(), subject: manualRef.value, minutes: mr.value, note: $('manualNote').value.trim(), favorite: false });
+  await saveSessions(list);
+  $('manualPanel').classList.remove('visible');
+  renderLog();
+});
+
+/* ---------------- kopia zapasowa: eksport / import ---------------- */
+const BACKUP_VERSION = 1;
+const backupMsg = $('backupMsg');
+
+async function gatherBackup() {
+  const [sessions, categories, presets, dayplans] = await Promise.all([
+    loadSessions(), loadCategories(), loadPresets(), loadDayplans()
+  ]);
+  return { app: 'dziennik-nauki', version: BACKUP_VERSION, exportedAt: new Date().toISOString(), sessions, categories, presets, dayplans };
+}
+
+function sanitizeBackupPayload(data) {
+  if (!data || typeof data !== 'object') throw new Error('To nie jest plik kopii zapasowej.');
+  if (!Array.isArray(data.sessions) && data.sessions !== undefined) throw new Error('Uszkodzone dane sesji w pliku.');
+  const sessions = asArray(data.sessions).filter(s => s && typeof s === 'object' && s.id !== undefined && s.date && s.subject);
+  const categories = asArray(data.categories).filter(c => typeof c === 'string' && c.trim() !== '');
+  const presets = asArray(data.presets).map(Number).filter(n => Number.isFinite(n) && n >= 1 && n <= 180);
+  const dayplans = asPlainObject(data.dayplans);
+  return {
+    sessions,
+    categories: categories.length ? categories : DEFAULT_CATEGORIES.slice(),
+    presets: presets.length ? presets : DEFAULT_PRESETS.slice(),
+    dayplans
+  };
+}
+
+$('exportBtn').addEventListener('click', async () => {
+  showErr(backupMsg, '');
+  const data = await gatherBackup();
+  const json = JSON.stringify(data, null, 2);
+  const filename = `dziennik-kopia-${ymd(new Date())}.json`;
+
+  try {
+    if (typeof Blob !== 'undefined') {
+      const blob = new Blob([json], { type: 'application/json' });
+      if (typeof navigator !== 'undefined' && navigator.share && navigator.canShare && typeof File !== 'undefined') {
+        const file = new File([blob], filename, { type: 'application/json' });
+        if (navigator.canShare({ files: [file] })) {
+          try { await navigator.share({ files: [file], title: 'Kopia zapasowa dziennika' }); backupMsg.textContent = 'Wysłano do udostępnienia.'; backupMsg.style.color = 'var(--sage)'; return; }
+          catch (shareErr) { /* anulowane albo niedostępne, spróbuj pobrania */ }
+        }
+      }
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = filename;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      backupMsg.style.color = 'var(--sage)';
+      backupMsg.textContent = `Pobrano: ${filename}`;
+    }
+  } catch (e) {
+    backupMsg.style.color = 'var(--rust)';
+    backupMsg.textContent = 'Nie udało się wyeksportować pliku.';
+  }
+});
+
+$('importBtn').addEventListener('click', () => {
+  showErr(backupMsg, '');
+  $('importFile').click();
+});
+
+$('importFile').addEventListener('change', async e => {
+  const file = e.target.files && e.target.files[0];
+  e.target.value = '';
+  if (!file) return;
+  if (!confirm('To zastąpi obecne dane danymi z pliku. Kontynuować?')) return;
+  try {
+    const text = await file.text();
+    let parsed;
+    try { parsed = JSON.parse(text); } catch (e2) { throw new Error('Plik nie jest poprawnym JSON.'); }
+    const clean = sanitizeBackupPayload(parsed);
+    await saveSessions(clean.sessions);
+    await saveCategories(clean.categories);
+    await savePresets(clean.presets);
+    await saveDayplans(clean.dayplans);
+    backupMsg.style.color = 'var(--sage)';
+    backupMsg.textContent = `Przywrócono ${clean.sessions.length} ${clean.sessions.length === 1 ? 'wpis' : 'wpisów'}.`;
+    await renderPresets();
+    await renderLog();
+    await renderCalendar();
+    await renderSchedule();
+  } catch (err) {
+    backupMsg.style.color = 'var(--rust)';
+    backupMsg.textContent = err.message || 'Nie udało się wczytać pliku.';
+  }
+});
+
+function dayLabelOf(iso) {
+  const d = new Date(iso), t = new Date(), y = new Date(); y.setDate(t.getDate() - 1);
+  const same = (a, b) => a.toDateString() === b.toDateString();
+  if (same(d, t)) return 'dziś';
+  if (same(d, y)) return 'wczoraj';
+  return `${d.getDate()} ${MONTHS_ABBR[d.getMonth()]}`;
+}
+const clockOf = iso => { const d = new Date(iso); return `${pad(d.getHours())}:${pad(d.getMinutes())}`; };
+
+async function renderCatFilter() {
+  const cats = await loadCategories();
+  catFilterRow.innerHTML =
+    `<button type="button" class="chip${F.category === null ? ' active' : ''}" data-fcat="*">Wszystkie</button>` +
+    cats.map(c => `<button type="button" class="chip${F.category === c ? ' active' : ''}" data-fcat="${esc(c)}">${esc(c)}</button>`).join('');
+}
+
+function entryHtml(s) {
+  return `<div class="entry-static">
+    <div class="entry-top">
+      <div style="flex:1">
+        <div class="entry-meta">
+          <span>${dayLabelOf(s.date)}</span><span>${clockOf(s.date)}</span>
+          <span class="entry-tag">${esc(s.subject)}</span><span>${s.minutes} min</span>
+        </div>
+        ${s.note ? `<div class="entry-note">${esc(s.note)}</div>` : ''}
+      </div>
+      <div class="entry-actions">
+        <button class="mini-btn ${s.favorite ? 'starred' : ''}" data-act="fav" data-id="${s.id}" title="ulubione">
+          <svg viewBox="0 0 24 24" fill="${s.favorite ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2"><polygon points="12 2 15 9 22 9.5 17 14.5 18.5 22 12 18 5.5 22 7 14.5 2 9.5 9 9"/></svg>
+        </button>
+        <button class="mini-btn" data-act="edit" data-id="${s.id}" title="edytuj">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+        </button>
+        <button class="mini-btn" data-act="del" data-id="${s.id}" title="usuń">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+        </button>
+      </div>
+    </div></div>`;
+}
+function editHtml(s, cats) {
+  return `<div class="entry-edit">
+    <span class="field-label">Kategoria</span>
+    <div class="chips left edit-tags">${cats.map(c => `<button type="button" class="chip${c === s.subject ? ' active' : ''}" data-ecat="${esc(c)}">${esc(c)}</button>`).join('')}</div>
+    <span class="field-label">Minuty</span>
+    <input type="text" class="edit-minutes" value="${s.minutes}">
+    <span class="field-label">Notatka</span>
+    <textarea class="edit-note">${esc(s.note)}</textarea>
+    <div class="err edit-err"></div>
+    <div class="controls">
+      <button class="primary" data-act="save-edit" data-id="${s.id}">Zapisz</button>
+      <button class="ghost" data-act="cancel-edit" data-id="${s.id}">Anuluj</button>
+    </div></div>`;
+}
+
+async function renderLog() {
+  await renderCatFilter();
+  const all = (await loadSessions()).slice().sort((a, b) => new Date(b.date) - new Date(a.date));
+  const cats = await loadCategories();
+
+  const totalMin = all.reduce((sum, s) => sum + (Number(s.minutes) || 0), 0);
+  const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+  const week = all.filter(s => new Date(s.date).getTime() >= weekAgo);
+  const weekMin = week.reduce((sum, s) => sum + (Number(s.minutes) || 0), 0);
+  const counts = {};
+  week.forEach(s => counts[s.subject] = (counts[s.subject] || 0) + 1);
+  const breakdown = Object.entries(counts).map(([k, v]) => `${v}× ${k}`).join(' · ');
+  statsEl.innerHTML = all.length
+    ? `<span>w tym tygodniu <b>${week.length}</b> ${week.length === 1 ? 'sesja' : 'sesji'} · <b>${weekMin}</b> min</span>
+       <span>łącznie <b>${all.length}</b> · <b>${Math.floor(totalMin / 60)}h ${totalMin % 60}m</b></span>
+       ${breakdown ? `<span>${esc(breakdown)}</span>` : ''}`
+    : '';
+
+  const filtered = all.filter(s => {
+    if (F.favOnly && !s.favorite) return false;
+    if (F.category && s.subject !== F.category) return false;
+    if (F.dateFilter && ymd(new Date(s.date)) !== F.dateFilter) return false;
+    if (F.search) {
+      const hay = ((s.note || '') + ' ' + s.subject).toLowerCase();
+      if (!hay.includes(F.search)) return false;
+    }
+    return true;
+  });
+
+  if (!filtered.length) {
+    logList.innerHTML = `<div class="empty-log">${all.length === 0 ? 'Jeszcze nic tu nie ma.<br>Pierwsza sesja sama się zapisze.' : 'Nic nie pasuje do filtrów.'}</div>`;
+    return;
+  }
+  logList.innerHTML = filtered.map(s => {
+    const editing = editingId === s.id;
+    return `<div class="entry${editing ? ' editing' : ''}" data-id="${s.id}">${entryHtml(s)}${editing ? editHtml(s, cats) : ''}</div>`;
+  }).join('');
+}
+
+logList.addEventListener('click', async e => {
+  const btn = e.target.closest('[data-act]');
+  if (!btn) {
+    const chip = e.target.closest('[data-ecat]');
+    if (chip) {
+      const row = chip.closest('.edit-tags');
+      row.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+    }
+    return;
+  }
+  const id = Number(btn.dataset.id);
+  const act = btn.dataset.act;
+
+  if (act === 'fav') {
+    const list = await loadSessions();
+    const s = list.find(x => x.id === id);
+    if (s) { s.favorite = !s.favorite; await saveSessions(list); }
+    renderLog(); return;
+  }
+  if (act === 'del') {
+    if (!confirm('Usunąć ten wpis?')) return;
+    const list = (await loadSessions()).filter(x => x.id !== id);
+    await saveSessions(list);
+    if (editingId === id) editingId = null;
+    renderLog(); renderCalendar(); return;
+  }
+  if (act === 'edit') { editingId = id; renderLog(); return; }
+  if (act === 'cancel-edit') { editingId = null; renderLog(); return; }
+  if (act === 'save-edit') {
+    const wrap = logList.querySelector(`.entry[data-id="${id}"]`);
+    const errEl = wrap.querySelector('.edit-err');
+    const mr = parseMinutes(wrap.querySelector('.edit-minutes').value, 1440);
+    if (!mr.ok) { showErr(errEl, mr.msg); return; }
+    const catBtn = wrap.querySelector('.edit-tags .chip.active');
+    const list = await loadSessions();
+    const s = list.find(x => x.id === id);
+    if (s) {
+      s.minutes = mr.value;
+      s.subject = catBtn ? catBtn.dataset.ecat : s.subject;
+      s.note = wrap.querySelector('.edit-note').value.trim();
+      await saveSessions(list);
+    }
+    editingId = null; renderLog(); renderCalendar(); return;
+  }
+});
+
+/* ================= KALENDARZ ================= */
+const CAL = { year: new Date().getFullYear(), month: new Date().getMonth(), selected: null };
+const calGrid = $('calGrid'), dayPanel = $('dayPanel');
+const quickRef = { value: 'SQL' };
+
+$('calPrev').addEventListener('click', () => { CAL.month--; if (CAL.month < 0) { CAL.month = 11; CAL.year--; } renderCalendar(); });
+$('calNext').addEventListener('click', () => { CAL.month++; if (CAL.month > 11) { CAL.month = 0; CAL.year++; } renderCalendar(); });
+
+async function renderCalendar() {
+  const sessions = await loadSessions();
+  $('calMonthLabel').textContent = `${MONTHS_NOM[CAL.month]} ${CAL.year}`;
+
+  const byDate = {};
+  sessions.forEach(s => {
+    const k = ymd(new Date(s.date));
+    if (!byDate[k]) byDate[k] = { count: 0, minutes: 0 };
+    byDate[k].count++; byDate[k].minutes += Number(s.minutes) || 0;
+  });
+
+  const first = new Date(CAL.year, CAL.month, 1);
+  const offset = (first.getDay() + 6) % 7;
+  const days = new Date(CAL.year, CAL.month + 1, 0).getDate();
+  const todayKey = ymd(new Date());
+
+  let html = DOW.map(d => `<div class="cal-dow">${d}</div>`).join('');
+  for (let i = 0; i < offset; i++) html += `<div class="cal-cell empty"></div>`;
+  for (let d = 1; d <= days; d++) {
+    const key = `${CAL.year}-${pad(CAL.month + 1)}-${pad(d)}`;
+    const info = byDate[key];
+    const cls = ['cal-cell'];
+    if (info) cls.push('has-entries');
+    if (key === todayKey) cls.push('today-cell');
+    if (key === CAL.selected) cls.push('selected');
+    const dots = info ? `<div class="cal-dots">${Array.from({ length: Math.min(info.count, 3) }, () => '<div class="cal-dot"></div>').join('')}</div>` : '';
+    const mins = info ? `<div class="cal-min">${info.minutes}m</div>` : '';
+    html += `<div class="${cls.join(' ')}" data-date="${key}"><div>${d}</div>${dots}${mins}</div>`;
+  }
+  calGrid.innerHTML = html;
+  await renderDayPanel();
+}
+
+calGrid.addEventListener('click', e => {
+  const cell = e.target.closest('[data-date]');
+  if (!cell) return;
+  CAL.selected = (CAL.selected === cell.dataset.date) ? null : cell.dataset.date;
+  renderCalendar();
+});
+
+async function renderDayPanel() {
+  if (!CAL.selected) {
+    dayPanel.innerHTML = `<div class="empty-log">Kliknij dzień, żeby zobaczyć wpisy albo dodać nowy.</div>`;
+    return;
+  }
+  const sessions = (await loadSessions())
+    .filter(s => ymd(new Date(s.date)) === CAL.selected)
+    .sort((a, b) => new Date(a.date) - new Date(b.date));
+  const [y, m, d] = CAL.selected.split('-').map(Number);
+  const label = `${d} ${MONTHS_GEN[m - 1]} ${y}`;
+  const total = sessions.reduce((sum, s) => sum + (Number(s.minutes) || 0), 0);
+
+  dayPanel.innerHTML = `
+    <div class="log-heading">${esc(label)}${sessions.length ? ` · ${total} min` : ''}</div>
+    ${sessions.length
+      ? sessions.map(s => `<div class="entry"><div class="entry-meta"><span>${clockOf(s.date)}</span><span class="entry-tag">${esc(s.subject)}</span><span>${s.minutes} min</span></div>${s.note ? `<div class="entry-note">${esc(s.note)}</div>` : ''}</div>`).join('')
+      : `<div class="empty-log">Brak wpisów tego dnia.</div>`}
+    <div style="margin-top:12px">
+      <span class="field-label">Dodaj wpis na ten dzień</span>
+      <div class="row-2">
+        <div><span class="field-label">Godzina</span><input type="time" id="quickTime" data-testid="quick-time" value="09:00"></div>
+        <div><span class="field-label">Minuty</span><input type="text" id="quickMinutes" data-testid="quick-minutes" value="45"></div>
+      </div>
+      <span class="field-label">Kategoria</span>
+      <div class="chips left" id="quickTagRow" data-testid="quick-tag-row"></div>
+      <span class="field-label">Notatka</span>
+      <textarea id="quickNote" data-testid="quick-note" placeholder="Co zrobiłeś?"></textarea>
+      <div class="err" id="quickErr" data-testid="quick-err"></div>
+      <div class="controls"><button class="primary" id="quickSave" data-testid="quick-save">Dodaj wpis</button></div>
+    </div>`;
+
+  await renderCatChips($('quickTagRow'), quickRef, true);
+}
+
+dayPanel.addEventListener('click', async e => {
+  const addCat = e.target.closest('[data-addcat]');
+  if (addCat) {
+    const name = (prompt('Nazwa nowej kategorii:') || '').trim();
+    if (!name) return;
+    const cats = await loadCategories();
+    if (!cats.includes(name)) { cats.push(name); await saveCategories(cats); }
+    quickRef.value = name;
+    await renderCatChips($('quickTagRow'), quickRef, true);
+    return;
+  }
+  const chip = e.target.closest('[data-cat]');
+  if (chip) {
+    quickRef.value = chip.dataset.cat;
+    $('quickTagRow').querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    return;
+  }
+  if (e.target.closest('#quickSave')) {
+    const mr = parseMinutes($('quickMinutes').value, 1440);
+    if (!mr.ok) { showErr($('quickErr'), mr.msg); return; }
+    const tr = parseClock($('quickTime').value);
+    if (!tr.ok) { showErr($('quickErr'), tr.msg); return; }
+    const [y, m, d] = CAL.selected.split('-').map(Number);
+    const dt = new Date(y, m - 1, d, 12, 0, 0);
+    if (tr.value) { const [h, mi] = tr.value.split(':').map(Number); dt.setHours(h, mi, 0, 0); }
+    showErr($('quickErr'), '');
+    const list = await loadSessions();
+    list.push({ id: Date.now() + Math.floor(Math.random() * 1000), date: dt.toISOString(), subject: quickRef.value, minutes: mr.value, note: $('quickNote').value.trim(), favorite: false });
+    await saveSessions(list);
+    renderCalendar();
+  }
+});
+
+/* ================= PLAN DNIA ================= */
+let schedDate = new Date();
+const blockList = $('blockList'), blockErr = $('blockErr');
+const checkSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>`;
+
+$('dayPrev').addEventListener('click', () => { schedDate.setDate(schedDate.getDate() - 1); renderSchedule(); });
+$('dayNext').addEventListener('click', () => { schedDate.setDate(schedDate.getDate() + 1); renderSchedule(); });
+
+async function renderSchedule() {
+  const key = ymd(schedDate);
+  $('dayLabel').textContent = (key === ymd(new Date()))
+    ? `dziś, ${schedDate.getDate()} ${MONTHS_GEN[schedDate.getMonth()]}`
+    : `${DAYS_FULL[schedDate.getDay()]}, ${schedDate.getDate()} ${MONTHS_GEN[schedDate.getMonth()]}`;
+
+  const plans = await loadDayplans();
+  const blocks = (plans[key] || []).slice().sort((a, b) => {
+    const ta = a.time || '99:99', tb = b.time || '99:99';
+    const na = ta.split(':').map(Number), nb = tb.split(':').map(Number);
+    return (na[0] * 60 + (na[1] || 0)) - (nb[0] * 60 + (nb[1] || 0));
+  });
+
+  blockList.innerHTML = blocks.length
+    ? blocks.map(b => `<div class="block-item" data-id="${b.id}">
+        <button class="block-check ${b.done ? 'done' : ''}" data-bact="toggle" data-id="${b.id}">${b.done ? checkSvg : ''}</button>
+        <div class="block-time">${esc(b.time || '—')}</div>
+        <div class="block-text ${b.done ? 'done' : ''}">${esc(b.text)}</div>
+        <button class="mini-btn" data-bact="del" data-id="${b.id}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button></div>`).join('')
+    : `<div class="empty-log">Pusto. Dodaj pierwszy punkt dnia poniżej.</div>`;
+}
+
+blockList.addEventListener('click', async e => {
+  const btn = e.target.closest('[data-bact]');
+  if (!btn) return;
+  const id = Number(btn.dataset.id);
+  const key = ymd(schedDate);
+  const plans = await loadDayplans();
+  const arr = plans[key] || [];
+  if (btn.dataset.bact === 'toggle') {
+    const b = arr.find(x => x.id === id);
+    if (b) b.done = !b.done;
+  } else if (btn.dataset.bact === 'del') {
+    plans[key] = arr.filter(x => x.id !== id);
+  }
+  if (btn.dataset.bact === 'toggle') plans[key] = arr;
+  await saveDayplans(plans);
+  renderSchedule();
+});
+
+$('blockAddBtn').addEventListener('click', async () => {
+  const text = $('blockText').value.trim();
+  if (!text) { showErr(blockErr, 'Wpisz, co jest w planie.'); return; }
+  const tr = parseClock($('blockTime').value);
+  if (!tr.ok) { showErr(blockErr, tr.msg); return; }
+  showErr(blockErr, '');
+  const key = ymd(schedDate);
+  const plans = await loadDayplans();
+  if (!Array.isArray(plans[key])) plans[key] = [];
+  plans[key].push({ id: Date.now() + Math.floor(Math.random() * 1000), time: tr.value, text, done: false });
+  await saveDayplans(plans);
+  $('blockTime').value = ''; $('blockText').value = '';
+  renderSchedule();
+});
+$('blockText').addEventListener('keydown', e => { if (e.key === 'Enter') $('blockAddBtn').click(); });
+$('blockTime').addEventListener('keydown', e => { if (e.key === 'Enter') $('blockAddBtn').click(); });
+
+/* ---------------- start ---------------- */
+(async function init() {
+  await renderPresets();
+  renderTimer();
+  await renderLog();
+  await renderCalendar();
+  await renderSchedule();
+  window.__appReady = true;
+})();
+
+})();
+</script>
+</body>
+</html>
