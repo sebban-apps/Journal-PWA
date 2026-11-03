@@ -72,4 +72,4 @@ Dlatego warto co jakiś czas użyć **eksportuj kopię zapasową** w zakładce D
 
 * Aplikacja potrzebuje internetu przy pierwszym otwarciu i do pobrania czcionek. Nie ma trybu offline z pamięcią podręczną, bez sieci strona może się nie otworzyć.
 * Timer nie wysyła powiadomień systemowych. Jeśli telefon zablokuje ekran, odliczanie liczy się poprawnie i po powrocie zobaczysz ekran notatki, ale sygnał zakończenia może nie dotrzeć.
-* Statystyka „ostatnie 7 dni” liczy siedem dób wstecz od teraz, a nie tydzień kalendarzowy.
+* Statystyka „ostatnie 7 dni” liczy siedem dób wstecz od teraz, a nie tydzień kalendarzowy. 
