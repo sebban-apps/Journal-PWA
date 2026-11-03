@@ -1,14 +1,16 @@
 {
   "name": "Dziennik nauki",
   "short_name": "Dziennik",
+  "description": "Timer sesji nauki, dziennik notatek, kalendarz i plan dnia.",
+  "lang": "pl",
   "start_url": "./dziennik-nauki.html",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#EDE8D9",
-  "theme_color": "#A87C3F",
+  "background_color": "#F5F8F7",
+  "theme_color": "#087F75",
   "orientation": "portrait",
   "icons": [
-    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
   ]
 }
