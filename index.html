@@ -22,6 +22,12 @@
     if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t);
   } catch (e) {}
 })();
+/* propozycja instalacji może przyjść, zanim skrypt aplikacji się wczyta */
+window.addEventListener('beforeinstallprompt', function (e) {
+  e.preventDefault();
+  window.__installEvent = e;
+  if (window.__onInstallAvailable) window.__onInstallAvailable();
+});
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -357,6 +363,25 @@
   .about{font-size:13px;color:var(--text-soft);line-height:1.7;font-variant-numeric:tabular-nums}
   .about b{color:var(--text);font-weight:600}
 
+  /* ================= INSTALACJA ================= */
+  .install-banner{display:flex;align-items:center;gap:var(--s3);padding:var(--s3) var(--s3) var(--s3) var(--s4);margin-bottom:var(--s4);background:var(--surface);border:1px solid var(--accent);border-radius:var(--r-card);box-shadow:var(--shadow-sm);animation:viewIn .3s var(--ease)}
+  .install-ic{width:40px;height:40px;border-radius:var(--r-sm);flex-shrink:0;display:flex;align-items:center;justify-content:center;background:var(--accent-tint);color:var(--accent-text)}
+  .install-ic svg{width:20px;height:20px}
+  .install-text{flex:1;min-width:0}
+  .install-title{font-family:var(--font-head);font-size:15px;font-weight:700;line-height:1.3}
+  .install-sub{font-size:13px;color:var(--text-soft);line-height:1.4}
+  .install-banner .actions{display:flex;align-items:center;gap:var(--s1);flex-shrink:0}
+  @media (max-width:420px){.install-sub{display:none}}
+  .install-state{display:flex;gap:var(--s3);align-items:flex-start;margin-bottom:var(--s3)}
+  .install-state .install-ic.ok{background:color-mix(in srgb,var(--success) 16%,transparent);color:var(--success)}
+  .install-state p{margin:0;font-size:14px;color:var(--text-soft)}
+  .install-state p b{color:var(--text);font-weight:600}
+  .install-steps{margin:0 0 var(--s3);padding-left:20px;font-size:14px;color:var(--text-soft)}
+  .install-steps li+li{margin-top:var(--s1)}
+  .install-steps b{color:var(--text);font-weight:600}
+  .install-meta{font-size:12px;color:var(--text-faint);line-height:1.7;word-break:break-all;margin-top:var(--s3);padding-top:var(--s3);border-top:1px solid var(--border-soft)}
+  .install-meta code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;color:var(--text-soft);background:var(--elevated);padding:1px 6px;border-radius:6px}
+
   /* ================= PASEK TRWAJĄCEJ SESJI ================= */
   .mini-timer{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--nav-h) + var(--s3) + env(safe-area-inset-bottom));z-index:39;display:flex;align-items:center;gap:var(--s2);padding:8px 16px 8px 12px;min-height:44px;border-radius:var(--r-btn);border:1px solid var(--accent);background:var(--surface);color:var(--text);box-shadow:var(--shadow-md);font-family:var(--font-body);font-size:14px;font-weight:500;cursor:pointer;animation:miniIn .25s var(--ease);max-width:calc(100% - 32px);white-space:nowrap}
   .mini-timer:active:not(:disabled){transform:translateX(-50%) scale(.98)}
@@ -438,6 +463,19 @@
   <main>
   <!-- ===== DZIŚ: timer + plan dnia ===== -->
   <section class="view active" id="view-today" aria-label="Dziś">
+    <div class="install-banner" id="installBanner" data-testid="install-banner" hidden>
+      <div class="install-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><polyline points="7 10 12 15 17 10"/><path d="M5 21h14"/></svg></div>
+      <div class="install-text">
+        <div class="install-title">Zainstaluj dziennik</div>
+        <div class="install-sub">Ikona na ekranie głównym i pełny ekran bez paska przeglądarki.</div>
+      </div>
+      <div class="actions">
+        <button class="primary sm" data-install="1" data-testid="install-banner-btn">Zainstaluj</button>
+        <button class="icon-btn plain" id="installDismiss" data-testid="install-dismiss" aria-label="Ukryj propozycję instalacji">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+    </div>
     <div class="today-grid">
       <div class="card">
         <div class="timer-view" id="timerView">
@@ -606,6 +644,11 @@
   <section class="view" id="view-settings" aria-label="Ustawienia">
     <div class="narrow stack">
       <div class="card">
+        <div class="section-head"><h2 class="section-title">Aplikacja</h2></div>
+        <div id="installBox" data-testid="install-box"></div>
+      </div>
+
+      <div class="card">
         <div class="section-head"><h2 class="section-title">Wygląd</h2></div>
         <div class="seg" id="themeSeg" role="group" aria-label="Motyw" data-testid="theme-seg">
           <button data-theme-pref="system">Jak w systemie</button>
@@ -706,7 +749,7 @@
 (function () {
 'use strict';
 
-const APP_VERSION = '2.0';
+const APP_VERSION = '2.1';
 
 /* ---------------- storage (Claude gdy dostępne, w przeciwnym razie localStorage) ---------------- */
 const Store = (function () {
@@ -1834,6 +1877,97 @@ $('importFile').addEventListener('change', async e => {
   }
 });
 
+/* ================= INSTALACJA ================= */
+const Install = {
+  installedNow: false,
+  manifestId: null,
+  isStandalone() {
+    try { if (window.matchMedia('(display-mode: standalone)').matches || window.matchMedia('(display-mode: minimal-ui)').matches) return true; } catch (e) {}
+    return window.navigator.standalone === true;
+  },
+  isIOS() {
+    const ua = navigator.userAgent || '';
+    return /iphone|ipad|ipod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  },
+  dismissed() { try { return localStorage.getItem('dziennik-nauki:installDismissed') === '1'; } catch (e) { return false; } }
+};
+const INSTALL_ICON_OK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+const INSTALL_ICON_DL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><polyline points="7 10 12 15 17 10"/><path d="M5 21h14"/></svg>';
+const INSTALL_ICON_INFO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="11" x2="12" y2="16.5"/><line x1="12" y1="7.5" x2="12" y2="7.5"/></svg>';
+
+function renderInstall() {
+  const ev = window.__installEvent || null;
+  const standalone = Install.isStandalone();
+  $('installBanner').hidden = !(ev && !standalone && !Install.dismissed());
+
+  let html;
+  if (standalone) {
+    html = `<div class="install-state"><div class="install-ic ok">${INSTALL_ICON_OK}</div>
+      <p><b>Działa jako zainstalowana aplikacja.</b><br>Otwierasz ją z ikony na ekranie głównym lub z listy aplikacji.</p></div>`;
+  } else if (Install.installedNow) {
+    html = `<div class="install-state"><div class="install-ic ok">${INSTALL_ICON_OK}</div>
+      <p><b>Zainstalowano.</b><br>Dziennik jest teraz na ekranie głównym albo na liście aplikacji.</p></div>`;
+  } else if (ev) {
+    html = `<div class="install-state"><div class="install-ic">${INSTALL_ICON_DL}</div>
+      <p><b>Można zainstalować na tym urządzeniu.</b><br>Dostaniesz ikonę na ekranie głównym, pełny ekran i skróty Nowy wpis oraz Statystyki.</p></div>
+      <div class="controls" style="justify-content:flex-start"><button class="primary sm" data-install="1" data-testid="install-btn">Zainstaluj aplikację</button></div>`;
+  } else if (Install.isIOS()) {
+    html = `<div class="install-state"><div class="install-ic">${INSTALL_ICON_INFO}</div>
+      <p><b>Na iPhonie instaluje się ręcznie w Safari.</b></p></div>
+      <ol class="install-steps">
+        <li>Otwórz ten adres w <b>Safari</b>.</li>
+        <li>Stuknij przycisk <b>Udostępnij</b> (kwadrat ze strzałką).</li>
+        <li>Wybierz <b>Do ekranu początkowego</b> i potwierdź <b>Dodaj</b>.</li>
+      </ol>`;
+  } else {
+    html = `<div class="install-state"><div class="install-ic">${INSTALL_ICON_INFO}</div>
+      <p><b>Przeglądarka nie proponuje teraz instalacji.</b></p></div>
+      <ol class="install-steps">
+        <li>Najczęściej oznacza to, że <b>dziennik jest już zainstalowany</b> na tym urządzeniu. Sprawdź listę aplikacji albo <b>chrome://apps</b> na komputerze.</li>
+        <li>Instalacja nie działa w <b>trybie incognito</b> ani w niektórych przeglądarkach (np. Firefox na komputerze).</li>
+        <li>W Chrome spróbuj z menu <b>⋮</b> i opcji <b>Zainstaluj aplikację</b> lub <b>Dodaj do ekranu głównego</b>. Jeśli zamiast tego widzisz <b>Otwórz aplikację</b>, sprawdź, czy otwarty adres to na pewno <b>/Journal-PWA/</b>.</li>
+      </ol>`;
+  }
+  const scope = new URL('./', location.href).href;
+  html += `<div class="install-meta">identyfikator aplikacji <code data-testid="install-id">${esc(Install.manifestId || '…')}</code><br>
+    zakres <code>${esc(scope)}</code></div>`;
+  $('installBox').innerHTML = html;
+}
+async function doInstall() {
+  const ev = window.__installEvent;
+  if (!ev) { renderInstall(); return; }
+  window.__installEvent = null;
+  try {
+    await ev.prompt();
+    const choice = ev.userChoice ? await ev.userChoice : null;
+    if (choice && choice.outcome === 'accepted') { Install.installedNow = true; toast('Instalacja rozpoczęta', 'success'); }
+    else toast('Instalacja anulowana', 'info');
+  } catch (e) {
+    toast('Nie udało się otworzyć okna instalacji', 'error');
+  }
+  renderInstall();
+}
+document.addEventListener('click', e => { if (e.target.closest('[data-install]')) doInstall(); });
+$('installDismiss').addEventListener('click', () => {
+  try { localStorage.setItem('dziennik-nauki:installDismissed', '1'); } catch (e) {}
+  renderInstall();
+  toast('Instalację znajdziesz też w Ustawieniach', 'info');
+});
+window.__onInstallAvailable = renderInstall;
+window.addEventListener('appinstalled', () => {
+  window.__installEvent = null; Install.installedNow = true;
+  renderInstall(); toast('Dziennik zainstalowany', 'success');
+});
+(async function readManifestId() {
+  try {
+    const href = document.querySelector('link[rel="manifest"]').href;
+    const m = await (await fetch(href, { cache: 'no-store' })).json();
+    const base = m.start_url ? new URL(m.start_url, href) : new URL(location.href);
+    Install.manifestId = m.id ? new URL(m.id, base.origin).href : base.href;
+  } catch (e) { Install.manifestId = 'nie udało się odczytać manifestu'; }
+  renderInstall();
+})();
+
 /* zmiana adresu po # przy otwartej aplikacji (np. skrót z ikony) */
 window.addEventListener('hashchange', () => {
   const h = (location.hash || '').replace('#', '');
@@ -1854,6 +1988,7 @@ window.addEventListener('hashchange', () => {
   currentView = '';
   await showView(wantsAdd ? 'log' : (SLUG_VIEW[hash] || 'today'));
   if (wantsAdd) openEntry({});
+  renderInstall();
   if (Store.mode === 'memory') toast('Ta przeglądarka nie pozwala zapisywać danych. Wpisy znikną po zamknięciu.', 'warning');
   window.__appReady = true;
 })();

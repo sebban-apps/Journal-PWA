@@ -14,7 +14,7 @@ Na telefonie zakładki są na dole ekranu, na komputerze u góry.
 | **Dziennik** | wszystkie wpisy pogrupowane po dniach, wyszukiwanie, filtry, dodawanie wpisów |
 | **Kalendarz** | miesiąc z zaznaczonymi dniami nauki i wpisy wybranego dnia |
 | **Statystyki** | czas nauki z ostatnich 7 lub 30 dni, seria dni z rzędu, podział na kategorie |
-| **Ustawienia** | motyw, kategorie, skróty timera, kopia zapasowa, informacje o wersji |
+| **Ustawienia** | instalacja aplikacji, motyw, kategorie, skróty timera, kopia zapasowa, informacje o wersji |
 
 ## Jak korzystać
 
@@ -60,12 +60,21 @@ Strzałki zmieniają miesiąc. Dni z nauką mają kropki i sumę minut, dzisiejs
 * **Skróty timera** można dodawać i usuwać.
 * **Kopia zapasowa** opisana jest niżej.
 
-## Instalacja na telefonie
+## Instalacja
 
-Otwórz adres aplikacji w przeglądarce.
+Najprościej zainstalować przyciskiem w aplikacji.
 
-* **Android (Chrome)** menu ⋮ i **Dodaj do ekranu głównego** lub **Zainstaluj aplikację**
+* Gdy przeglądarka pozwala na instalację, na ekranie **Dziś** pojawia się baner **Zainstaluj dziennik**. Krzyżyk go ukrywa na stałe.
+* W **Ustawienia → Aplikacja** zawsze widać stan instalacji i przycisk **Zainstaluj aplikację**, jeśli instalacja jest możliwa.
+* Na iPhonie karta pokazuje instrukcję dla Safari (**Udostępnij** i **Do ekranu początkowego**), bo tam nie da się zainstalować przyciskiem.
+* Gdy przeglądarka nie proponuje instalacji, karta wyjaśnia najczęstsze powody. Zwykle aplikacja jest już zainstalowana albo strona jest otwarta w trybie incognito.
+* Na dole karty widać **identyfikator aplikacji** i **zakres**. Jeśli Chrome twierdzi, że aplikacja jest już zainstalowana, porównaj z nimi adres w pasku. Dziennik zawsze ma zakres `/Journal-PWA/`.
+
+Można też ręcznie.
+
+* **Android (Chrome)** menu ⋮ i **Zainstaluj aplikację** lub **Dodaj do ekranu głównego**
 * **iPhone (Safari)** przycisk udostępniania i **Do ekranu początkowego**
+* **Komputer (Chrome, Edge)** ikona instalacji na końcu paska adresu
 
 Na Androidzie przytrzymanie ikony pokazuje skróty **Nowy wpis** i **Statystyki**.
 

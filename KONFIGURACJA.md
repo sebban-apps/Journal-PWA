@@ -6,7 +6,7 @@ Aplikacja jest statyczną stroną PWA (bez service workera). Cały kod, czyli HT
 
 Interfejs korzysta z systemu wizualnego **Modern Teal Signature** (paleta teal, Manrope i Inter, jasny i ciemny motyw).
 
-Wersja aplikacji to stała `APP_VERSION` w skrypcie (obecnie `2.0`). Widać ją w **Ustawienia → O aplikacji**, co pozwala sprawdzić, czy GitHub Pages serwuje już nową wersję.
+Wersja aplikacji to stała `APP_VERSION` w skrypcie (obecnie `2.1`). Widać ją w **Ustawienia → O aplikacji**, co pozwala sprawdzić, czy GitHub Pages serwuje już nową wersję.
 
 ## Struktura plików
 
@@ -93,6 +93,7 @@ Warstwa `Store` wybiera magazyn w tej kolejności
 | `dayplans` | `{ "RRRR-MM-DD": [{ id, time, text, done }] }` | tak |
 | `timer` | stan trwającej sesji `{ phase, total, left, endAt, running, startedAt, lastMinutes }` albo `null` | nie |
 | `lastBackup` | data ostatniego eksportu (ISO) | nie |
+| `installDismissed` | `1`, gdy użytkownik ukrył baner instalacji. Zapisywany bezpośrednio w `localStorage` | nie |
 | `theme` | `light` lub `dark`, brak klucza oznacza motyw systemowy. Czytany bezpośrednio z `localStorage` przed pierwszym malowaniem | nie |
 
 Odczyty przechodzą przez funkcje strażnicze (`asArray`, `asPlainObject`, filtry w `load*`), które odrzucają uszkodzone dane. Format danych jest zgodny z wersją 1.x, więc wcześniejsze wpisy wczytują się bez migracji.
@@ -119,6 +120,7 @@ Import przechodzi przez `sanitizeBackupPayload` i zastępuje cztery klucze danyc
 * **Timer** liczy czas od znacznika końca `T.endAt`, a nie od taktów `setInterval`, więc nie gubi sekund przy uśpionej karcie. Fazy to `idle`, `active` i `note`. Każda zmiana stanu trafia do klucza `timer`, a `restoreTimer()` odtwarza ją przy starcie.
 * **Formularz wpisu** `openEntry({ session?, date? })` obsługuje dodawanie i edycję z dziennika, kalendarza i timera. `handleEntryAction()` obsługuje gwiazdkę, edycję i usuwanie w dzienniku i kalendarzu.
 * **Okna** `Overlay` trzyma stos otwartych warstw, więc Escape zamyka tylko górną. `Dialog.confirm` i `Dialog.prompt` zastępują `confirm()` i `prompt()`.
+* **Instalacja** skrypt w `<head>` przechwytuje zdarzenie `beforeinstallprompt` (wywołuje `preventDefault()` i zapisuje je w `window.__installEvent`), bo przeglądarka może je wysłać, zanim wczyta się reszta skryptu. `renderInstall()` wybiera jeden z pięciu stanów karty **Ustawienia → Aplikacja**, czyli tryb zainstalowanej aplikacji (`display-mode: standalone` lub `navigator.standalone`), świeżo zainstalowana (`appinstalled`), instalacja możliwa, instrukcja dla iPhone'a albo wyjaśnienie, czemu przeglądarka nie proponuje instalacji. `doInstall()` wywołuje `prompt()` i czyta `userChoice`. Identyfikator pokazywany w karcie jest wyliczany z pobranego `manifest.json` tak samo jak w Chrome (`id` rozwiązane względem domeny). Baner na ekranie Dziś pojawia się tylko przy dostępnym `beforeinstallprompt`, poza trybem aplikacji i jeśli nie został ukryty. Safari i Firefox na komputerze nie wysyłają `beforeinstallprompt`, dlatego tam działa tylko instrukcja.
 * **Odświeżanie** `refreshAll()` przerysowuje dziennik, kalendarz, statystyki, podsumowanie dnia i ustawienia po każdej zmianie danych.
 
 ## System wizualny
@@ -145,6 +147,7 @@ Lista kontrolna po zmianach
 * zmiana nazwy i usunięcie kategorii, dodanie i usunięcie skrótu
 * eksport i import kopii
 * motyw systemowy, jasny i ciemny
+* instalacja z banera i z Ustawień, ukrycie banera, karta w zainstalowanej aplikacji, karta w Safari na iPhonie (do testów w Chrome przydaje się flaga `--bypass-app-banner-engagement-checks`)
 * adresy `./#dodaj` i `dziennik-nauki.html#statystyki`
 * szerokość 360 px i komputer
 * po wdrożeniu `Page.getAppId` pod adresem z GitHub Pages zwraca `.../Journal-PWA/dziennik-nauki.html`
