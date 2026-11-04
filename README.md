@@ -2,50 +2,63 @@
 
 Prosta aplikacja do mierzenia czasu nauki i zapisywania krótkich notatek po każdej sesji. Działa w przeglądarce na telefonie i komputerze, a na telefonie można ją zainstalować jak zwykłą aplikację.
 
-## Co potrafi
+Adres aplikacji **https://sebban-apps.github.io/Journal-PWA/**
 
-* **Timer** z tarczą i wskazówką, gotowymi skrótami (45, 20, 30 min) i własnym czasem od 1 do 180 minut
-* **Notatka po sesji** z wyborem kategorii (SQL, Python, Angielski, Inne oraz własne)
-* **Dziennik** z wyszukiwaniem, filtrem kategorii, ulubionymi, edycją i usuwaniem wpisów
-* **Statystyki** z ostatnich 7 dni i łącznie, z podziałem na kategorie
-* **Kalendarz** miesiąca, w którym widać dni z nauką i liczbę minut
-* **Plan dnia** z listą punktów, godzinami i paskiem postępu
-* **Kopia zapasowa** do pliku JSON i przywracanie z takiego pliku
-* **Jasny i ciemny motyw**
+## Jak jest ułożona
+
+Na telefonie zakładki są na dole ekranu, na komputerze u góry.
+
+| Zakładka | Co w niej jest |
+|---|---|
+| **Dziś** | timer z tarczą, notatka po sesji, podsumowanie dnia i plan dnia |
+| **Dziennik** | wszystkie wpisy pogrupowane po dniach, wyszukiwanie, filtry, dodawanie wpisów |
+| **Kalendarz** | miesiąc z zaznaczonymi dniami nauki i wpisy wybranego dnia |
+| **Statystyki** | czas nauki z ostatnich 7 lub 30 dni, seria dni z rzędu, podział na kategorie |
+| **Ustawienia** | motyw, kategorie, skróty timera, kopia zapasowa, informacje o wersji |
 
 ## Jak korzystać
 
-### Timer
+### Timer (zakładka Dziś)
 
-1. Wybierz skrót albo wpisz własny czas w polu „własny czas”.
-2. Naciśnij **Zacznij**. Podczas odliczania możesz dać **Pauza** i **Wznów**.
+1. Wybierz skrót (np. **Techniczna · 45**) albo wpisz własny czas od 1 do 180 minut.
+2. Naciśnij **Zacznij**. W trakcie możesz dać **Pauza** i **Wznów**.
 3. Gdy czas minie, telefon krótko zawibruje (jeśli to obsługuje) i pojawi się ekran notatki. Sesję można też skończyć wcześniej przyciskiem **Zakończ i zapisz**, wtedy zapisze się faktycznie przepracowany czas.
 4. Wybierz kategorię, dopisz kilka słów i naciśnij **Zapisz**. **Pomiń** wraca do timera bez zapisu.
 
-Przycisk **zapisz jako skrót** dodaje wpisany czas do listy skrótów. Pozostały czas widać też w tytule karty przeglądarki.
+Wpis dostaje godzinę **rozpoczęcia** sesji. Trwająca sesja przetrwa zamknięcie aplikacji albo przeładowanie strony. Po ponownym otwarciu timer liczy dalej, a jeśli czas minął w międzyczasie, od razu pojawi się ekran notatki.
+
+Gdy przejdziesz do innej zakładki w trakcie sesji, na dole ekranu pojawi się pasek z pozostałym czasem. Dotknięcie go wraca do timera.
+
+Pod timerem widać, ile dziś się uczyłeś, ile było sesji i ile dni z rzędu trwa seria.
+
+### Plan dnia (zakładka Dziś)
+
+Wpisz godzinę (np. `9:00`, można pominąć) i treść punktu, potem naciśnij **+** albo Enter. Kwadrat po lewej oznacza punkt jako zrobiony, a pasek pokazuje postęp. Strzałki przełączają dni, a **wróć do dziś** wraca do bieżącego dnia.
 
 ### Dziennik
 
-* Pole wyszukiwania przeszukuje notatki i nazwy kategorii.
-* Gwiazdka obok pola pokazuje tylko ulubione wpisy.
-* Przy każdym wpisie są trzy ikony, czyli ulubione, edycja i usuwanie. Usunięcie trzeba potwierdzić.
-* **+ zapisz minioną sesję** dodaje wpis z dowolną datą, godziną i długością (do 1440 minut). To samo otwiera link pod timerem.
+* **Dodaj wpis** otwiera formularz, w którym podajesz datę, godzinę rozpoczęcia, czas trwania (do 1440 minut), kategorię i notatkę. Ten sam formularz otwiera link **zapisz sesję, która już się odbyła** pod timerem.
+* Ołówek przy wpisie otwiera ten sam formularz do edycji. Można zmienić także datę i godzinę.
+* Gwiazdka dodaje wpis do ulubionych, kosz go usuwa (po potwierdzeniu).
+* Pole wyszukiwania przeszukuje notatki i nazwy kategorii. Gwiazdka obok pokazuje tylko ulubione, a kategorie pod spodem filtrują listę.
+* Nad listą widać liczbę wpisów i łączny czas dla aktualnych filtrów. **wyczyść filtry** pokazuje znów wszystko.
 
 ### Kalendarz
 
-Strzałki zmieniają miesiąc. Dzień z wpisami ma kropki i sumę minut, a dzisiejszy dzień jest obwiedziony. Po kliknięciu dnia widać jego wpisy i formularz dodania nowego wpisu na ten dzień. Ponowne kliknięcie zamyka podgląd.
+Strzałki zmieniają miesiąc. Dni z nauką mają kropki i sumę minut, dzisiejszy dzień jest obwiedziony. Po kliknięciu dnia widać jego wpisy (z tymi samymi przyciskami co w dzienniku) i przycisk **Dodaj**, który otwiera formularz z wybraną datą.
 
-### Plan dnia
+### Statystyki
 
-Wpisz godzinę (np. `9:00`, można pominąć) i treść punktu, potem naciśnij **+** albo Enter. Kwadrat po lewej oznacza punkt jako zrobiony. Strzałki przełączają dni.
+* Kafelki pokazują czas z dzisiaj, serię dni z rzędu i łączny czas.
+* Wykres **Czas nauki** pokazuje minuty z każdego dnia z ostatnich 7 albo 30 dni. Dotknięcie słupka pokazuje dokładną wartość.
+* **Kategorie** pokazują, ile czasu poszło na każdą kategorię w ostatnich 7 dniach, 30 dniach albo w całej historii.
 
-### Kategorie
+### Ustawienia
 
-Przycisk **+ nowa** przy wyborze kategorii otwiera okno, w którym wpisujesz nazwę. Nowa kategoria od razu pojawia się w filtrach i formularzach.
-
-### Motyw
-
-Ikona księżyca lub słońca w prawym górnym rogu przełącza motyw. Wybór jest zapamiętywany. Dopóki nic nie wybierzesz, aplikacja dopasowuje się do ustawień systemu.
+* **Wygląd** pozwala wybrać motyw jasny, ciemny albo zgodny z ustawieniami telefonu.
+* **Kategorie** można dodawać, usuwać i zmieniać im nazwy. Zmiana nazwy poprawia też wszystkie wpisy z tą kategorią. Usunięcie kategorii nie usuwa wpisów.
+* **Skróty timera** można dodawać i usuwać.
+* **Kopia zapasowa** opisana jest niżej.
 
 ## Instalacja na telefonie
 
@@ -54,22 +67,29 @@ Otwórz adres aplikacji w przeglądarce.
 * **Android (Chrome)** menu ⋮ i **Dodaj do ekranu głównego** lub **Zainstaluj aplikację**
 * **iPhone (Safari)** przycisk udostępniania i **Do ekranu początkowego**
 
-Na komputerze wystarczy otworzyć stronę w przeglądarce.
+Na Androidzie przytrzymanie ikony pokazuje skróty **Nowy wpis** i **Statystyki**.
+
+Jeśli masz zainstalowaną wersję spod starego adresu `sebban03.github.io`, usuń ją i zainstaluj aplikację od nowa z nowego adresu (najpierw przenieś dane, patrz niżej). Dziennik nie myli się z innymi aplikacjami spod `sebban-apps.github.io`, każdą można zainstalować osobno.
 
 ## Gdzie są zapisane dane
 
-Wszystkie wpisy, kategorie, skróty i plany dnia są zapisywane **tylko w tej przeglądarce na tym urządzeniu**. Nic nie jest wysyłane na serwer i nie ma konta.
+Wszystkie wpisy, kategorie, skróty, plany dnia i trwająca sesja są zapisywane **tylko w tej przeglądarce na tym urządzeniu**. Nic nie jest wysyłane na serwer i nie ma konta.
 
 Oznacza to, że
 
 * dane z telefonu nie pojawią się same na komputerze,
-* wyczyszczenie danych przeglądarki lub odinstalowanie aplikacji usuwa wpisy,
+* wyczyszczenie danych przeglądarki usuwa wpisy,
+* pod innym adresem strony (np. po przeniesieniu repozytorium) dziennik jest pusty,
 * tryb prywatny może nie zapamiętywać danych. Aplikacja ostrzega wtedy komunikatem.
 
-Dlatego warto co jakiś czas użyć **eksportuj kopię zapasową** w zakładce Dziennik. Na telefonie plik można od razu wysłać, np. na Dysk Google. **przywróć z kopii** wczytuje taki plik i **zastępuje** obecne dane, więc aplikacja pyta przed tym o potwierdzenie. W ten sposób przeniesiesz też dane na inne urządzenie.
+### Kopia zapasowa
+
+W **Ustawieniach** przycisk **Eksportuj kopię** zapisuje wszystkie dane do pliku JSON. Na telefonie plik można od razu wysłać, np. na Dysk Google. **Przywróć z pliku** wczytuje taki plik i **zastępuje** obecne dane, więc aplikacja pyta przed tym o potwierdzenie. W ten sam sposób przeniesiesz dane na inne urządzenie albo pod nowy adres.
+
+Aplikacja pamięta datę ostatniej kopii i przypomina, jeśli minęły ponad 2 tygodnie.
 
 ## Ograniczenia
 
-* Aplikacja potrzebuje internetu przy pierwszym otwarciu i do pobrania czcionek. Nie ma trybu offline z pamięcią podręczną, bez sieci strona może się nie otworzyć.
-* Timer nie wysyła powiadomień systemowych. Jeśli telefon zablokuje ekran, odliczanie liczy się poprawnie i po powrocie zobaczysz ekran notatki, ale sygnał zakończenia może nie dotrzeć.
-* Statystyka „ostatnie 7 dni” liczy siedem dób wstecz od teraz, a nie tydzień kalendarzowy. 
+* Aplikacja potrzebuje internetu przy otwieraniu. Nie ma trybu offline z pamięcią podręczną.
+* Timer nie wysyła powiadomień systemowych. Przy zablokowanym ekranie czas liczy się poprawnie, ale sygnał końca może nie dotrzeć.
+* Statystyka „7 dni” obejmuje dzisiejszy dzień i sześć poprzednich, a nie tydzień kalendarzowy.
